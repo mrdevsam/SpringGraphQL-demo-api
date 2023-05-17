@@ -5,12 +5,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import jakarta.persistence.*;
 import lombok.*;
-//import java.util.*;
-//import org.springframework.graphql.data.method.annotation.*;
-//import org.springframework.stereotype.Controller;
-//import org.springframework.stereotype.Service;
-//import jakarta.annotation.PostConstruct;
-//import java.util.concurrent.atomic.AtomicInteger;
+import org.springframework.data.repository.*;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.*;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+import com.github.javafaker.Faker;
+import java.util.*;
+import java.util.stream.*;
+
 
 @SpringBootApplication
 public class SpringGraphqlDemoApplication {
@@ -25,7 +28,6 @@ public class SpringGraphqlDemoApplication {
 
 @Entity
 @NoArgsConstructor
-@AllArgsConstructor
 @Data
 class Address {
 
@@ -37,11 +39,17 @@ class Address {
 	private String city;
 	private String state;
 	private String zip;
+
+	public Address(String address, String city, String state, String zip) {
+		this.address = address;
+		this.city = city;
+		this.state = state;
+		this.zip = zip;
+	}
 }
 
 @Entity
 @NoArgsConstructor
-@AllArgsConstructor
 @Data
 class Person {
 
@@ -57,4 +65,71 @@ class Person {
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "address_id", referencedColumnName = "id")
 	private Address address;
+
+	public Person(String firstName, String lastName, String phoneNumber, String email, Address address) {
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.phoneNumber = phoneNumber;
+		this.email = email;
+		this.address = address;
+	}
+}
+
+//repository layer
+
+interface PersonRepo extends PagingAndSortingRepository<Person, Integer>, CrudRepository<Person, Integer> {
+	
+}
+
+//Data Loader
+
+@Component
+class SampleDataLoader implements CommandLineRunner {
+
+	private final PersonRepo repo;
+	private final Faker faker;
+
+	public SampleDataLoader(PersonRepo repository) {
+		this.repo = repository;
+		this.faker = new Faker();
+	}
+	
+	@Override
+	public void run(String... args) throws Exception {
+
+		//create 100 rows of people in database
+		List<Person> people = IntStream.rangeClosed(1, 100)
+			.mapToObj(i -> new Person(
+				faker.name().firstName(),
+				faker.name().lastName(),
+				faker.phoneNumber().cellPhone(),
+				faker.internet().emailAddress(),
+				new Address(
+					faker.address().streetAddress(),
+					faker.address().city(),
+					faker.address().state(),
+					faker.address().zipCode()
+				)
+			)).toList();
+
+		repo.saveAll(people);
+	}
+}
+//controller layer
+
+@RestController
+@RequestMapping("/api/people")
+class PersonController {
+
+	private final PersonRepo pRepo;
+
+	PersonController(PersonRepo pRepo) {
+		this.pRepo = pRepo;
+	}
+
+	@GetMapping
+	public Page<Person> findAll(@RequestParam int page, @RequestParam int size) {
+		PageRequest pr = PageRequest.of(page, size);
+		return pRepo.findAll(pr);
+	}
 }
