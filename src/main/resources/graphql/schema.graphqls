@@ -1,0 +1,26 @@
+# Root operation types
+type Query {
+	# returns all people in the database
+	allPeople: [Person]
+
+	# returns all people limited by page & size
+	allPeoplePaged(page: Int, size: Int): [Person]
+}
+
+# Object types
+type Person {
+	id: ID!
+	firstName: String
+	lastName: String
+	phoneNumber: String
+	email: String
+	address: Address
+}
+
+type Address {
+	id: ID!
+	address: String
+	city: String
+	state: String
+	zip: String
+}

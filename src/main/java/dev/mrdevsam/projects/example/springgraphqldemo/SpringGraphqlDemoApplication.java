@@ -10,9 +10,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
 import com.github.javafaker.Faker;
 import java.util.*;
 import java.util.stream.*;
+import org.springframework.graphql.data.method.annotation.*;
 
 
 @SpringBootApplication
@@ -131,5 +133,27 @@ class PersonController {
 	public Page<Person> findAll(@RequestParam int page, @RequestParam int size) {
 		PageRequest pr = PageRequest.of(page, size);
 		return pRepo.findAll(pr);
+	}
+}
+
+@Controller
+class PersonGraphQlController {
+
+	private final PersonRepo repo;
+
+	PersonGraphQlController(PersonRepo repo) {
+		this.repo = repo;
+	}
+
+	//@SchemaMapping(typeName = "Query", value = "allPeople")
+	@QueryMapping
+	public Iterable<Person> allPeople() {
+		return repo.findAll();
+	}
+
+	@QueryMapping
+	public Page<Person> allPeoplePaged(@Argument int page, @Argument int size) {
+		PageRequest pr = PageRequest.of(page, size);
+		return repo.findAll(pr);
 	}
 }
