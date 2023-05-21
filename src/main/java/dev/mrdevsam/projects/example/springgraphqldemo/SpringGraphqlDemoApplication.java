@@ -11,7 +11,7 @@ import jakarta.annotation.PostConstruct;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.context.annotation.*;
 
-//import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -19,6 +19,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @SpringBootApplication
@@ -32,6 +34,7 @@ public class SpringGraphqlDemoApplication {
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(securedEnabled=true)
 class SecurityConfig {
 
 	@Bean
@@ -137,26 +140,31 @@ class CoffeeController{
 		this.coffeeService = coffeeService;
 	}
 
+	@Secured("ROLE_USER") //we can use @PreAuthorize in place of @Secured
 	@QueryMapping
 	public List<Coffee> findAll() {
 		return coffeeService.findAll();
 	}
 
+	@Secured("ROLE_USER")
 	@QueryMapping
 	public Optional<Coffee> findOne(@Argument Integer id) {
 		return coffeeService.findOne(id);
 	}
 
+	@PreAuthorize("hasRole('ADMIN')") // we can use @Secured in place of @PreAuthorize
 	@MutationMapping
 	public Coffee create(@Argument String name, @Argument Size size) {
 		return coffeeService.create(name, size);
 	}
 
+	@PreAuthorize("hasRole('ADMIN')")
 	@MutationMapping
 	public Coffee update(@Argument Integer id, @Argument String name, @Argument Size size) {
 		return coffeeService.update(id, name, size);
 	}
 
+	@PreAuthorize("hasRole('ADMIN')")
 	@MutationMapping
 	public Coffee delete(@Argument Integer id) {
 		return coffeeService.delete(id);
