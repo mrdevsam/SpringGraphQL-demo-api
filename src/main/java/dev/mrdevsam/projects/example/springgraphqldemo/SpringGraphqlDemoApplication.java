@@ -9,6 +9,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.springframework.context.annotation.*;
+
+//import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+//import org.springframework.security.core.userdetails.User;
+//import org.springframework.security.core.userdetails.UserDetails;
+//import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @SpringBootApplication
 public class SpringGraphqlDemoApplication {
@@ -19,6 +30,23 @@ public class SpringGraphqlDemoApplication {
 
 }
 
+@Configuration
+@EnableWebSecurity
+class SecurityConfig {
+
+	@Bean
+	public SecurityFilterChain configure(HttpSecurity http) throws Exception {
+		return http
+			.csrf(csrf -> csrf.disable()) 
+			.authorizeRequests( auth -> {
+				auth.anyRequest().authenticated();
+			}) // allow all requests for a authentiocated user
+			.sessionManagement(
+				session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+			) // disable session management
+			.httpBasic(withDefaults()).build();
+	}
+}
 //data models
 record Coffee(Integer id, String name, Size size){
 	
