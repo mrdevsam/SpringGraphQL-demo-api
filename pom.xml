@@ -35,6 +35,11 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
 		  <groupId>com.graphql-java</groupId>
 		  <artifactId>graphql-java-extended-scalars</artifactId>
 		  <version>20.2</version>
