@@ -7,6 +7,7 @@ import java.util.*;
 //import org.springframework.graphql.data.method.annotation.*;
 //import org.springframework.stereotype.Controller;
 //import org.springframework.stereotype.Service;
+import org.springframework.data.jpa.repository.JpaRepository;
 import lombok.*;
 import jakarta.persistence.*;
 
@@ -65,3 +66,8 @@ class Review {
 }
 
 record BookInput(String title, Integer pages, String author) {}
+
+
+//repository
+
+interface BookRepository extends JpaRepository<Book, Integer> {}
