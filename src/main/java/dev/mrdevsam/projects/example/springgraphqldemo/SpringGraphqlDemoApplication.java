@@ -4,9 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.*;
-//import org.springframework.graphql.data.method.annotation.*;
-//import org.springframework.stereotype.Controller;
-//import org.springframework.stereotype.Service;
+import org.springframework.graphql.data.method.annotation.*;
+import org.springframework.stereotype.Controller;
 import org.springframework.data.jpa.repository.JpaRepository;
 import lombok.*;
 import jakarta.persistence.*;
@@ -71,3 +70,55 @@ record BookInput(String title, Integer pages, String author) {}
 //repository
 
 interface BookRepository extends JpaRepository<Book, Integer> {}
+
+//controller
+@Controller
+class BookgraphqlController{
+
+	private final BookRepository repo;
+
+	public BookgraphqlController(BookRepository repo) {
+		this.repo = repo;
+	}
+
+	@QueryMapping
+	public List<Book> findAllBooks() {
+		return repo.findAll();
+	}
+
+	@QueryMapping
+	public Book findBook(@Argument Integer id) {
+		return repo.findById(id).orElse(null);
+	}
+
+	@MutationMapping
+	public Book createBook(@Argument String title,@Argument Integer pages,@Argument String author) {
+		return repo.save(new Book(title, pages, author));
+	}
+
+	@MutationMapping
+	public Book addBook(@Argument BookInput book) {
+		return repo.save(new Book(book.title(), book.pages(), book.author()));
+	}
+
+	@MutationMapping
+	public Book updateBook(@Argument Integer id, @Argument BookInput book) {
+		Book bkToUp = repo.findById(id).orElse(null);
+
+		if(bkToUp == null) {
+			throw new RuntimeException("Invalid book");
+		}
+
+		bkToUp.setTitle(book.title());
+		bkToUp.setPages(book.pages());
+		bkToUp.setAuthor(book.author());
+
+		repo.save(bkToUp);
+		return bkToUp;
+	}
+
+	@MutationMapping
+	public void deleteBook(@Argument Integer id) {
+		repo.deleteById(id);
+	}
+}
